@@ -6,7 +6,7 @@ API::NZBMatrix
     
 =head1 SYNOPSIS
 
-use API::NZBMatrix;
+    use API::NZBMatrix;
 
     my $api = API::NZBMatrix->new(
         {
