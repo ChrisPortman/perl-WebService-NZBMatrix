@@ -49,7 +49,7 @@ package API::NZBMatrix;
     my $API_VERSION  = 'v1.1';
     my $CLEAR_PROTO  = 'http://';
     my $SECURE_PROTO = 'https://';
-    my $DEBUG        = 1;
+    my $DEBUG        = 0;
 
 =head2 new
     
@@ -223,21 +223,21 @@ context:
 Return hash is in the form:
 
     {
-        'NZBID'       => '444027', # NZB ID On Site
-        'NZBNAME'     => 'mandriva linux 2009', # NZB Name On Site
+        'NZBID'       => '444027',                    # NZB ID On Site
+        'NZBNAME'     => 'mandriva linux 2009',       # NZB Name On Site
         'LINK'        => 'nzbmatrix.com/nzb-details.php?id=444027&hit=1', # Link To NZB Details Page
-        'SIZE'        => '1469988208.64', # Size in bytes
-        'INDEX_DATE'  => '2009-02-14 09:08:55', # Indexed By Site (Date/Time GMT)
-        'USENET_DATE' => '2009-02-12 2:48:47', # Posted To Usenet (Date/Time GMT)
-        'CATEGORY'    => 'TV: SD', # NZB Post Category
-        'GROUP'       => 'alt.binaries.linux', # Usenet Newsgroup
-        'COMMENTS'    => '0', # Number Of Comments Posted
-        'HITS'        => '174', # Number Of Hits (Views)
-        'NFO'         => 'yes', # NFO Present
-        'WEBLINK'     => 'http://linux.org', # HTTP Link To Attached Website
-        'LANGUAGE'    => 'English', # Language Attached From Our Index
+        'SIZE'        => '1469988208.64',             # Size in bytes
+        'INDEX_DATE'  => '2009-02-14 09:08:55',       # Indexed By Site (Date/Time GMT)
+        'USENET_DATE' => '2009-02-12 2:48:47',        # Posted To Usenet (Date/Time GMT)
+        'CATEGORY'    => 'TV: SD',                    # NZB Post Category
+        'GROUP'       => 'alt.binaries.linux',        # Usenet Newsgroup
+        'COMMENTS'    => '0',                         # Number Of Comments Posted (Broken: always 0)
+        'HITS'        => '0',                         # Number Of Hits (Views) (Broken: always 0)
+        'NFO'         => 'yes',                       # NFO Present
+        'WEBLINK'     => 'http://linux.org',          # HTTP Link To Attached Website
+        'LANGUAGE'    => 'English',                   # Language Attached From Our Index
         'IMAGE'       => 'http://linux.org/logo.gif', # HTTP Link To Attached Image
-        'REGION'      => '0', # Region Coding (See notes)
+        'REGION'      => '0',                         # Region Coding
     }
 
 =cut
@@ -371,32 +371,34 @@ are optional.
             'news_group'   => 'Name of news group', #NOT VALIDATED
             'min_size'     => 10, # number of MB
             'max_size'     => 10, # number of MB
-            'min_hits'     => 10, # number of hits
-            'max_hits'     => 10, # number of hits
             'english_only' => (1|0),
             'search_field' => ('name'|'subject'|'weblink'),
         }
     );
 
+The API documentation also includes reference to min and max hits
+however it appears that this info is not included in the API data at
+this point in time and results always show 0 hits.
+
 Returns a list of hash references each hash containing the details
 of each result.  Example:
 
     {
-        'NZBID'       => '444027', # NZB ID On Site
-        'NZBNAME'     => 'mandriva linux 2009', # NZB Name On Site
+        'NZBID'       => '444027',                    # NZB ID On Site
+        'NZBNAME'     => 'mandriva linux 2009',       # NZB Name On Site
         'LINK'        => 'nzbmatrix.com/nzb-details.php?id=444027&hit=1', # Link To NZB Details Page
-        'SIZE'        => '1469988208.64', # Size in bytes
-        'INDEX_DATE'  => '2009-02-14 09:08:55', # Indexed By Site (Date/Time GMT)
-        'USENET_DATE' => '2009-02-12 2:48:47', # Posted To Usenet (Date/Time GMT)
-        'CATEGORY'    => 'TV: SD', # NZB Post Category
-        'GROUP'       => 'alt.binaries.linux', # Usenet Newsgroup
-        'COMMENTS'    => '0', # Number Of Comments Posted
-        'HITS'        => '174', # Number Of Hits (Views)
-        'NFO'         => 'yes', # NFO Present
-        'WEBLINK'     => 'http://linux.org', # HTTP Link To Attached Website
-        'LANGUAGE'    => 'English', # Language Attached From Our Index
+        'SIZE'        => '1469988208.64',             # Size in bytes
+        'INDEX_DATE'  => '2009-02-14 09:08:55',       # Indexed By Site (Date/Time GMT)
+        'USENET_DATE' => '2009-02-12 2:48:47',        # Posted To Usenet (Date/Time GMT)
+        'CATEGORY'    => 'TV: SD',                    # NZB Post Category
+        'GROUP'       => 'alt.binaries.linux',        # Usenet Newsgroup
+        'COMMENTS'    => '0',                         # Number Of Comments Posted (Broken: always 0)
+        'HITS'        => '0',                         # Number Of Hits (Views) (Broken: always 0)
+        'NFO'         => 'yes',                       # NFO Present
+        'WEBLINK'     => 'http://linux.org',          # HTTP Link To Attached Website
+        'LANGUAGE'    => 'English',                   # Language Attached From Our Index
         'IMAGE'       => 'http://linux.org/logo.gif', # HTTP Link To Attached Image
-        'REGION'      => '0', # Region Coding (See notes)
+        'REGION'      => '0',                         # Region Coding
     }
 
 Valid categories are:
@@ -540,16 +542,19 @@ Valid search fields are:
                     'key'   => 'smaller',
                     'valid' => sub { return $_[0] =~ /^\d+$/ ? 1 : undef },
                 },
-            'min_hits'     => 
-                {
-                    'key'   => 'minhits',
-                    'valid' => sub { return $_[0] =~ /^\d+$/ ? 1 : undef },
-                },
-            'max_hits'     => 
-                {
-                    'key'   => 'maxhits',
-                    'valid' => sub { return $_[0] =~ /^\d+$/ ? 1 : undef },
-                },
+                
+           # Hits data apparently is not available via the API atm
+           # and always returns 0 hits
+           #'min_hits'     => 
+           #    {
+           #        'key'   => 'minhits',
+           #        'valid' => sub { return $_[0] =~ /^\d+$/ ? 1 : undef },
+           #    },
+           #'max_hits'     => 
+           #    {
+           #        'key'   => 'maxhits',
+           #        'valid' => sub { return $_[0] =~ /^\d+$/ ? 1 : undef },
+           #    },
             'english_only' => 
                 {
                     'key'   => 'englishonly',
@@ -712,6 +717,8 @@ call will return undef.
         else {
             $full_url = $CLEAR_PROTO.$API_HOSTNAME.'/'.$API_VERSION.'/'.$uri;
         }
+
+        _debug($full_url);
         
         my $ua = LWP::UserAgent->new;
         $ua->agent("API-NZBMatrix/$VERSION");
