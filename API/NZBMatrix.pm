@@ -3,6 +3,10 @@
 =head1 NAME
 
 API::NZBMatrix
+
+=head1 VERSION
+
+Version 0.1
     
 =head1 SYNOPSIS
 
@@ -802,6 +806,16 @@ call will return undef.
         
         return 1;
     }
+    
+=head1 AUTHOR
+
+Chris Portman <chrisportman@internode.net.au>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2012 by Chris Portman.
+
+This program is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
     
     
 1;
