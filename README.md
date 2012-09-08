@@ -1,261 +1,183 @@
+
 NAME
-        API::NZBMatrix
+    API::NZBMatrix
 
 SYNOPSIS
-        use API::NZBMatrix;
-    
-        my $api = API::NZBMatrix->new(
-            {
-                'username' => 'myuser',
-                'apikey'   => 'myapikey',
-            }
-        );
-    
-        my @search_results = $api->search('search term');
-    
-        for my $result (@search_results) {
-            my $id = $result->{'NZBID'};
-        
+    use API::NZBMatrix;
+
+    my $api = API::NZBMatrix->new( { 'username' => 'myuser', 'apikey' =>
+    'myapikey', } );
+
+    my @search_results = $api->search('search term');
+
+    for my $result (@search_results) { my $id = $result->{'NZBID'};
+
             unless ( $api->bookmark($id) ) {
-                my $error = $api->error();
-                warn "$error\n" if $error;
+                    my $error = $api->error();
+                    warn "$error\n" if $error;
             }
-        }
+    }
 
 DESCRIPTION
-        Object oriented interface to the NZBMatrix APIs
+    Object oriented interface to the NZBMatrix APIs
 
 METHODS
   new
-        $api = API::NZBMatrix->new( 
-            { 
-                'username' => 'nzbmatrix_user',
-                'apikey'   => 'nzbmatrix_apikey',
-                'ssl'      => 1, #OPTIONAL
-            }
-        );
-    
-        Accepts one argument which must be a hash reference containing the 
-        keys 'username' being the username for your NZBmarix login for your
-        account, and 'apikey' being the api key corresponding to that account.
-        The hash ref can also contain the key 'ssl' with any true value to
-        enable the use of ssl/https when communicating with the APIs.
-    
-        Returns an object setup with your NZBMatric authentication details.
+    $api = API::NZBMatrix->new( { 'username' => 'nzbmatrix_user', 'apikey'
+    => 'nzbmatrix_apikey', 'ssl' => 1, #OPTIONAL } );
+
+    Accepts one argument which must be a hash reference containing the keys
+    'username' being the username for your NZBmarix login for your account,
+    and 'apikey' being the api key corresponding to that account. The hash
+    ref can also contain the key 'ssl' with any true value to enable the use
+    of ssl/https when communicating with the APIs.
+
+    Returns an object setup with your NZBMatric authentication details.
 
   account
-        The account method takes no arguments and uses the username and 
-        apikey supplied during construction to retrieve some details of the
-        account.  Returns a hash reference or list depending on the calling
-        context:
-    
-        $account_details = $api->account();
-        %account_details = $api->account();
-    
-        The returned hash looks like:
+    The account method takes no arguments and uses the username and apikey
+    supplied during construction to retrieve some details of the account.
+    Returns a hash reference or list depending on the calling context:
 
-        {
-              'API_DAILY_DOWNLOAD' => '0', #Downloads via API for the day 
-              'USERID' => '606735',        #Account ID
-              'API_DAILY_RATE' => '28',    #API calls for the hour
-              'USERNAME' => 'username'     #Username on the site.
-        }
+    $account_details = $api->account(); %account_details = $api->account();
+
+    The returned hash looks like:
+
+    { 'API_DAILY_DOWNLOAD' => '0', #Downloads via API for the day 'USERID'
+    => '606735', #Account ID 'API_DAILY_RATE' => '28', #API calls for the
+    hour 'USERNAME' => 'username' #Username on the site. }
 
   bookmark
-        The bookmark method allows you to add or remove bookmarks.  It 
-        accepts either a single scalar value which will be the ID of an NZB
-        or a hash ref containing the options applicable to this API function.
-        In the case of a hash ref, the nzb_id is mandatory, the rest is
-        optional.
-    
-        $success = $api->bookmark('12345');
-    
-        $success = $api->bookmark(
-            {
-                nzb_id => '12345',
-                action => ('add'|'remove'), #defaults to 'add'
-            }
-        );
-    
-        Returns true (1) if successful, undef if there is an error.
+    The bookmark method allows you to add or remove bookmarks. It accepts
+    either a single scalar value which will be the ID of an NZB or a hash
+    ref containing the options applicable to this API function. In the case
+    of a hash ref, the nzb_id is mandatory, the rest is optional.
+
+    $success = $api->bookmark('12345');
+
+    $success = $api->bookmark( { nzb_id => '12345', action =>
+    ('add'|'remove'), #defaults to 'add' } );
+
+    Returns true (1) if successful, undef if there is an error.
 
   details
-        The details method retrieves the details of a specifc NZB given its
-        ID.  Accepts a single scalar argument being the ID of the NZB to be
-        queried.
-    
-        Returns a hash reference or list depending on the calling
-        context:
-    
-        $details = $api->details('12345');
-        %details = $api->details('12345');
-    
-        Return hash is in the form:
-        {
-            'NZBID'       => '444027', # NZB ID On Site
-            'NZBNAME'     => 'mandriva linux 2009', # NZB Name On Site
-            'LINK'        => 'nzbmatrix.com/nzb-details.php?id=444027&hit=1', # Link To NZB Details Page
-            'SIZE'        => '1469988208.64', # Size in bytes
-            'INDEX_DATE'  => '2009-02-14 09:08:55', # Indexed By Site (Date/Time GMT)
-            'USENET_DATE' => '2009-02-12 2:48:47', # Posted To Usenet (Date/Time GMT)
-            'CATEGORY'    => 'TV: SD', # NZB Post Category
-            'GROUP'       => 'alt.binaries.linux', # Usenet Newsgroup
-            'COMMENTS'    => '0', # Number Of Comments Posted
-            'HITS'        => '174', # Number Of Hits (Views)
-            'NFO'         => 'yes', # NFO Present
-            'WEBLINK'     => 'http://linux.org', # HTTP Link To Attached Website
-            'LANGUAGE'    => 'English', # Language Attached From Our Index
-            'IMAGE'       => 'http://linux.org/logo.gif', # HTTP Link To Attached Image
-            'REGION'      => '0', # Region Coding (See notes)
-        }
+    The details method retrieves the details of a specifc NZB given its ID.
+    Accepts a single scalar argument being the ID of the NZB to be queried.
+
+    Returns a hash reference or list depending on the calling context:
+
+    $details = $api->details('12345'); %details = $api->details('12345');
+
+    Return hash is in the form: { 'NZBID' => '444027', # NZB ID On Site
+    'NZBNAME' => 'mandriva linux 2009', # NZB Name On Site 'LINK' =>
+    'nzbmatrix.com/nzb-details.php?id=444027&hit=1', # Link To NZB Details
+    Page 'SIZE' => '1469988208.64', # Size in bytes 'INDEX_DATE' =>
+    '2009-02-14 09:08:55', # Indexed By Site (Date/Time GMT) 'USENET_DATE'
+    => '2009-02-12 2:48:47', # Posted To Usenet (Date/Time GMT) 'CATEGORY'
+    => 'TV: SD', # NZB Post Category 'GROUP' => 'alt.binaries.linux', #
+    Usenet Newsgroup 'COMMENTS' => '0', # Number Of Comments Posted 'HITS'
+    => '174', # Number Of Hits (Views) 'NFO' => 'yes', # NFO Present
+    'WEBLINK' => 'http://linux.org', # HTTP Link To Attached Website
+    'LANGUAGE' => 'English', # Language Attached From Our Index 'IMAGE' =>
+    'http://linux.org/logo.gif', # HTTP Link To Attached Image 'REGION' =>
+    '0', # Region Coding (See notes) }
 
   download
-        The details method retrieves the NZB given its ID.
-        Accepts a single scalar argument being the ID of the NZB to be
-        downloaded or a hash ref containing the keys 'nzb_id' being the ID
-        of the NZB to download and an optional 'file' key containing a file
-        name to write the NZB contents to.  In either case, if no 'file' is
-        supplied the NZB contents are returned as a scalar string.
-    
-        If 'file' is supplied, the return values is 1/true.
-    
-        $nzb = $api->download('12345');
-    
-        $success = $api->download(
-            {
-                'nzb_id' => '12345',
-                'file'   => '/path/to/file.nzb',
-            }
-        );
-    
-        Note that if the file already exists, an error will be set and undef
-        returned.
-        If 'file' contains a directory path (full or relative) and the 
-        directory doesn't exist, we won't create it here. An error will be 
-        set and undef returned.
+    The details method retrieves the NZB given its ID. Accepts a single
+    scalar argument being the ID of the NZB to be downloaded or a hash ref
+    containing the keys 'nzb_id' being the ID of the NZB to download and an
+    optional 'file' key containing a file name to write the NZB contents to.
+    In either case, if no 'file' is supplied the NZB contents are returned
+    as a scalar string.
+
+    If 'file' is supplied, the return values is 1/true.
+
+    $nzb = $api->download('12345');
+
+    $success = $api->download( { 'nzb_id' => '12345', 'file' =>
+    '/path/to/file.nzb', } );
+
+    Note that if the file already exists, an error will be set and undef
+    returned. If 'file' contains a directory path (full or relative) and the
+    directory doesn't exist, we won't create it here. An error will be set
+    and undef returned.
 
   search
-        The search method accepts either a single scalar that will be used 
-        as the search term and all other options will be the default as set
-        by the API or a single hash ref allowing the full compliment of 
-        options to be set in which case 'search_term' is mandatory, the rest
-        are optional.
+    The search method accepts either a single scalar that will be used as
+    the search term and all other options will be the default as set by the
+    API or a single hash ref allowing the full compliment of options to be
+    set in which case 'search_term' is mandatory, the rest are optional.
 
-        $search_results = $api->search('A search term');
-    
-        $search_results = $api->search( 
-            {   
-                'search_term'  => 'A search term',
-                'category'     => 'NZBMatrix search category'
-                'max_results'  => 10, # number
-                'max_age'      => 10, # number of days
-                'region'       => ('PAL'|'NTSC'|'FREE'),
-                'news_group'   => 'Name of news group', #NOT VALIDATED
-                'min_size'     => 10, # number of MB
-                'max_size'     => 10, # number of MB
-                'min_hits'     => 10, # number of hits
-                'max_hits'     => 10, # number of hits
-                'english_only' => (1|0),
-                'search_field' => ('name'|'subject'|'weblink'),
-            }
-        );
-    
-        Returns a list of hash references each hash containing the details
-        of each result.  Example:
-        {
-            'NZBID'       => '444027', # NZB ID On Site
-            'NZBNAME'     => 'mandriva linux 2009', # NZB Name On Site
-            'LINK'        => 'nzbmatrix.com/nzb-details.php?id=444027&hit=1', # Link To NZB Details Page
-            'SIZE'        => '1469988208.64', # Size in bytes
-            'INDEX_DATE'  => '2009-02-14 09:08:55', # Indexed By Site (Date/Time GMT)
-            'USENET_DATE' => '2009-02-12 2:48:47', # Posted To Usenet (Date/Time GMT)
-            'CATEGORY'    => 'TV: SD', # NZB Post Category
-            'GROUP'       => 'alt.binaries.linux', # Usenet Newsgroup
-            'COMMENTS'    => '0', # Number Of Comments Posted
-            'HITS'        => '174', # Number Of Hits (Views)
-            'NFO'         => 'yes', # NFO Present
-            'WEBLINK'     => 'http://linux.org', # HTTP Link To Attached Website
-            'LANGUAGE'    => 'English', # Language Attached From Our Index
-            'IMAGE'       => 'http://linux.org/logo.gif', # HTTP Link To Attached Image
-            'REGION'      => '0', # Region Coding (See notes)
-        }
-    
-        Valid categories are:
-        Everything
-        Movies: ALL             TV: ALL             Documentaries: ALL
-        Movies: DVD             TV: DVD (Image)     Documentaries: STD 
-        Movies: Divx/Xvid       TV: SD              Documentaries: HD  
-        Movies: BRRip           TV: HD (x264)  
-        Movies: HD (x264)       TV: HD (Image)      Anime: ALL  
-        Movies: HD (Image)      TV: Sport/Ent       
-        Movies: Other           TV: Other           Other: ALL
-                                                    Other: Audio Books  
-        Games: ALL              Apps: ALL           Other: Radio  
-        Games: PC               Apps: PC            Other: E-Books  
-        Games: PS2              Apps: Mac           Other: Images  
-        Games: PS3              Apps: Portable      Other: Android  
-        Games: PSP              Apps: Linux         Other: iOS/iPhone  
-        Games: Xbox             Apps: Other         Other: Other  
-        Games: Xbox360                              Other: Extra Pars/Fills
-        Games: Xbox360 (Other)  Music: ALL          
-        Games: Wii              Music: MP3 Albums   
-        Games: Wii VC           Music: MP3 Singles  
-        Games: DS               Music: Lossless  
-        Games: Other            Music: DVD  
-                                Music: Video  
-                                Music: Other
-    
-        Valid regions are:
-        PAL
-        NTSC
-        FREE
-    
-        Valid search fields are:
-        name
-        subject
-        weblink
+    $search_results = $api->search('A search term');
+
+    $search_results = $api->search( { 'search_term' => 'A search term',
+    'category' => 'NZBMatrix search category' 'max_results' => 10, # number
+    'max_age' => 10, # number of days 'region' => ('PAL'|'NTSC'|'FREE'),
+    'news_group' => 'Name of news group', #NOT VALIDATED 'min_size' => 10, #
+    number of MB 'max_size' => 10, # number of MB 'min_hits' => 10, # number
+    of hits 'max_hits' => 10, # number of hits 'english_only' => (1|0),
+    'search_field' => ('name'|'subject'|'weblink'), } );
+
+    Returns a list of hash references each hash containing the details of
+    each result. Example: { 'NZBID' => '444027', # NZB ID On Site 'NZBNAME'
+    => 'mandriva linux 2009', # NZB Name On Site 'LINK' =>
+    'nzbmatrix.com/nzb-details.php?id=444027&hit=1', # Link To NZB Details
+    Page 'SIZE' => '1469988208.64', # Size in bytes 'INDEX_DATE' =>
+    '2009-02-14 09:08:55', # Indexed By Site (Date/Time GMT) 'USENET_DATE'
+    => '2009-02-12 2:48:47', # Posted To Usenet (Date/Time GMT) 'CATEGORY'
+    => 'TV: SD', # NZB Post Category 'GROUP' => 'alt.binaries.linux', #
+    Usenet Newsgroup 'COMMENTS' => '0', # Number Of Comments Posted 'HITS'
+    => '174', # Number Of Hits (Views) 'NFO' => 'yes', # NFO Present
+    'WEBLINK' => 'http://linux.org', # HTTP Link To Attached Website
+    'LANGUAGE' => 'English', # Language Attached From Our Index 'IMAGE' =>
+    'http://linux.org/logo.gif', # HTTP Link To Attached Image 'REGION' =>
+    '0', # Region Coding (See notes) }
+
+    Valid categories are: Everything Movies: ALL TV: ALL Documentaries: ALL
+    Movies: DVD TV: DVD (Image) Documentaries: STD Movies: Divx/Xvid TV: SD
+    Documentaries: HD Movies: BRRip TV: HD (x264) Movies: HD (x264) TV: HD
+    (Image) Anime: ALL Movies: HD (Image) TV: Sport/Ent Movies: Other TV:
+    Other Other: ALL Other: Audio Books Games: ALL Apps: ALL Other: Radio
+    Games: PC Apps: PC Other: E-Books Games: PS2 Apps: Mac Other: Images
+    Games: PS3 Apps: Portable Other: Android Games: PSP Apps: Linux Other:
+    iOS/iPhone Games: Xbox Apps: Other Other: Other Games: Xbox360 Other:
+    Extra Pars/Fills Games: Xbox360 (Other) Music: ALL Games: Wii Music: MP3
+    Albums Games: Wii VC Music: MP3 Singles Games: DS Music: Lossless Games:
+    Other Music: DVD Music: Video Music: Other
+
+    Valid regions are: PAL NTSC FREE
+
+    Valid search fields are: name subject weblink
 
   site_status
-        The site_status method downloads the site status page at 
-        http://nzbmatrix.info/ and attempts to find the status of the
-        various components for which they provide statuses.
-    
-        The page also may have a notice of some kind that provides important
-        information outside of the normal components being online/offline.
-    
-        The method needs no arguments and returns a scalar containing a
-        reference to a hash or a list depending on the calling context.
-    
-        $status = $api->site_status();
-        %status = $api->site_status();
-    
-        The return hash looks like:
-        {
-            'NZBxxx RSS'       => 'Online',
-            'NZBMatrix API'    => 'Online',
-            'Payment Gateways' => 'Online',
-            'NZBMatrix'        => 'Online',
-            'Notice'           => 'Issues on RSS and bookmark is Offline ATM',
-            'NZBxxx API'       => 'Online',
-            'NZBxxx'           => 'Online',
-            'NZBMatrix RSS'    => 'Online'
-        }
+    The site_status method downloads the site status page at
+    http://nzbmatrix.info/ and attempts to find the status of the various
+    components for which they provide statuses.
+
+    The page also may have a notice of some kind that provides important
+    information outside of the normal components being online/offline.
+
+    The method needs no arguments and returns a scalar containing a
+    reference to a hash or a list depending on the calling context.
+
+    $status = $api->site_status(); %status = $api->site_status();
+
+    The return hash looks like: { 'NZBxxx RSS' => 'Online', 'NZBMatrix API'
+    => 'Online', 'Payment Gateways' => 'Online', 'NZBMatrix' => 'Online',
+    'Notice' => 'Issues on RSS and bookmark is Offline ATM', 'NZBxxx API' =>
+    'Online', 'NZBxxx' => 'Online', 'NZBMatrix RSS' => 'Online' }
 
   error
-        The error method can be used to retrive the last error that occured.
-        All methods that fail, will set an error retrivable by this method, 
-        and then return undef.
-    
-        Therefore it is good practice to check for a positive result for
-        each method call and then call error() if the result is 'false'.
-    
-        Eg:
-        $success = $api->bookmark('12345');
-        unless ($success) {
-            $error = $api->error();
-            print $error if $error;
-        }
-    
-        Retrieving the error will clear the error meaning that a subsequent
-        call will return undef.
+    The error method can be used to retrive the last error that occured. All
+    methods that fail, will set an error retrivable by this method, and then
+    return undef.
+
+    Therefore it is good practice to check for a positive result for each
+    method call and then call error() if the result is 'false'.
+
+    Eg: $success = $api->bookmark('12345'); unless ($success) { $error =
+    $api->error(); print $error if $error; }
+
+    Retrieving the error will clear the error meaning that a subsequent call
+    will return undef.
 
