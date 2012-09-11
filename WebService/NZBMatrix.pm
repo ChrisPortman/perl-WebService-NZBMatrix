@@ -2,7 +2,7 @@
 
 =head1 NAME
 
-Net::NZBMatrix
+WebService::NZBMatrix
 
 =head1 VERSION
 
@@ -10,7 +10,7 @@ Version 0.1
     
 =head1 SYNOPSIS
 
-    use Net::NZBMatrix;
+    use WebService::NZBMatrix;
 
     my $api = API::NZBMatrix->new(
         {
@@ -37,7 +37,7 @@ Object oriented interface to the NZBMatrix APIs
 =head1 METHODS
 
 =cut
-package Net::NZBMatrix;
+package WebService::NZBMatrix;
 
     our $VERSION = '0.1';
     
@@ -53,7 +53,7 @@ package Net::NZBMatrix;
 
 =head2 new
     
-    $api = Net::NZBMatrix->new( 
+    $api = WebService::NZBMatrix->new( 
         { 
             'username' => 'nzbmatrix_user',
             'apikey'   => 'nzbmatrix_apikey',
