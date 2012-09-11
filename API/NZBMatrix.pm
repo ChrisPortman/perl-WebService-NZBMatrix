@@ -110,7 +110,7 @@ The returned hash looks like:
 
     {
           'API_DAILY_DOWNLOAD' => '0', #Downloads via API for the day 
-          'USERID' => '606735',        #Account ID
+          'USERID' => '12345',         #Account ID
           'API_DAILY_RATE' => '28',    #API calls for the hour
           'USERNAME' => 'username'     #Username on the site.
     }
@@ -134,15 +134,21 @@ accepts either a single scalar value which will be the ID of an NZB
 or a hash ref containing the options applicable to this API function.
 In the case of a hash ref, the nzb_id is mandatory, the rest is
 optional.
-
+    
+    # As a single scalar
     $success = $api->bookmark('12345');
     
+    # As a list of attributes
     $success = $api->bookmark(
-        {
             nzb_id => '12345',
             action => ('add'|'remove'), #defaults to 'add'
-        }
     );
+    
+    # Options supplied in a hash ref.
+    %opts_hash = ( 'nzb_id' => '1234', 
+                   'action' => ('add'|'remove'), 
+                 );
+    $success = $api->bookmark( \%opts_hash );
 
 Returns true (1) if successful, undef if there is an error.
 
@@ -150,7 +156,24 @@ Returns true (1) if successful, undef if there is an error.
 
     sub bookmark {
         my $self = shift;
-        my $opts = shift || return;
+        my %opts;
+        
+        if (@_ > 1 and not @_ % 2) {
+            %opts = @_;
+        }
+        elsif ( @_ == 1 ) {
+            if (ref $_[0] eq 'HASH') {
+                %opts = %{ $_[0] };
+            }
+            else {
+                %opts = ( 'nzb_id' => $_[0], 'action' => 'add' );
+            }
+        }
+        else {
+            $self->error('Must supply at least an NZB ID to bookmark()');
+            return;
+        }
+
         my $uri;
         my $result;
         my %uri_options;
@@ -173,34 +196,27 @@ Returns true (1) if successful, undef if there is an error.
                 },
         );
         
-        if (ref $opts eq 'HASH') {
-            unless ($opts->{'nzb_id'}) {
-                $self->error('No NZB ID supplied. ID is required');
+        unless ($opts{'nzb_id'}) {
+            $self->error('No NZB ID supplied. ID is required');
+            return;
+        }
+
+        for my $opt ( keys %opts ) {
+            # Test that the option is a valid option
+            unless ($options{$opt}) {
+                $self->error("Invalid bookmark option $opt supplied");
                 return;
             }
-
-               for my $opt ( keys %{$opts} ) {
-                # Test that the option is a valid option
-                unless ($options{$opt}) {
-                    $self->error("Invalid bookmark option $opt supplied");
-                    return;
-                }
-                
-                # Test that the value for this option is valid
-                unless ( $options{$opt}->{'valid'}->($opts->{$opt}) ){
-                    $self->error("Invalid value for option $opt supplied");
-                    return;
-                }
-                
-                $uri_options{ $options{$opt}->{'key'} } = $opts->{$opt};                                
+            
+            # Test that the value for this option is valid
+            unless ( $options{$opt}->{'valid'}->($opts{$opt}) ){
+                $self->error("Invalid value for option $opt supplied");
+                return;
             }
             
+            $uri_options{ $options{$opt}->{'key'} } = $opts{$opt};
         }
-        else {
-            $uri_options{ 'id' }     = $opts;
-            $uri_options{ 'action' } = 'add';
-        }
-        
+            
         $uri    = $self->_create_uri('bookmarks.php', \%uri_options);
         $result = $self->_fetch_api($uri) || return;
         $result = $self->_process_api_output($result) || return;
@@ -274,14 +290,20 @@ supplied the NZB contents are returned as a scalar string.
 
 If 'file' is supplied, the return values is 1/true.
 
+    # NZB ID supplied as a scalar
     $nzb = $api->download('12345');
     
+    # Options supplied as a list of arguments.
     $success = $api->download(
-        {
             'nzb_id' => '12345',
             'file'   => '/path/to/file.nzb',
-        }
     );
+    
+    # Options supplied in a hash ref.
+    %opts_hash = ( 'nzb_id'   => '12345', 
+                   'file' => '/some/file.nzb', 
+                 );
+    $success = $api->download( \%opts_hash );
 
 Note that if the file already exists, an error will be set and undef
 returned.
@@ -293,45 +315,51 @@ set and undef returned.
 
     sub download {
         my $self = shift;
-        my $opts = shift;
+        my %opts;
+        
+        if (@_ > 1 and not @_ % 2) {
+            %opts = @_;
+        }
+        elsif ( @_ == 1 ) {
+            if (ref $_[0] eq 'HASH') {
+                %opts = %{ $_[0] };
+            }
+            else {
+                %opts = ( 'nzb_id' => $_[0] );
+            }
+        }
+        else {
+            $self->error('Must supply at least an NZB ID to download()');
+            return;
+        }
+
         my $uri;
-        my $file;
         my $result;
         my %uri_options;
 
-        if ( ref $opts eq 'HASH' ) {
-            my $id = $opts->{'nzb_id'};
-            $file  = $opts->{'file'};
+        my $id   = $opts{'nzb_id'};
+        my $file = $opts{'file'};
+        
+        unless ( $id and $id =~ /\d+/ ) {
+            $self->error('Invalid ID supplied or ID missing');
+            return;
+        }
+        
+        if ($file) {
+            my ($dir) = $file =~ m|^(.*)/|;
             
-            unless ( $id and $id =~ /\d+/ ) {
-                $self->error('Invalid ID supplied or ID missing');
+            if (-f $file) {
+                $self->error('The specified file already exists.');
                 return;
             }
             
-            if ($file) {
-                my ($dir) = $file =~ m|^(.*)/|;
-                
-                if (-f $file) {
-                    $self->error('The specified file already exists.');
-                    return;
-                }
-                
-                if ($dir and not -d $dir) {
-                    $self->error('The directory does not exist.');
-                    return;
-                }
-            }
-
-            $uri_options{'id'} = $id;
-        }
-        else {
-            unless ($opts =~ /^\d+$/) {
-                $self->error($opts.' does not look like a valid NZB ID');
+            if ($dir and not -d $dir) {
+                $self->error('The directory does not exist.');
                 return;
             }
-
-            $uri_options{'id'} = $opts;
         }
+
+        $uri_options{'id'} = $id;
         
         
         $uri    = $self->_create_uri('download.php', \%uri_options);
@@ -359,10 +387,11 @@ by the API or a single hash ref allowing the full compliment of
 options to be set in which case 'search_term' is mandatory, the rest
 are optional.
 
+    # Scalar supplied search term
     $search_results = $api->search('A search term');
     
+    # Options supplied as a list of elements
     $search_results = $api->search( 
-        {   
             'search_term'  => 'A search term',
             'category'     => 'NZBMatrix search category'
             'max_results'  => 10, # number
@@ -373,8 +402,14 @@ are optional.
             'max_size'     => 10, # number of MB
             'english_only' => (1|0),
             'search_field' => ('name'|'subject'|'weblink'),
-        }
     );
+    
+    # Options supplied in a hash ref.
+    %opts_hash = ( 'search_term' => 'something', 
+                   'category'    => 'Everything,
+                   ... 
+                 );
+    $search_results = $api->search( \%opts_hash );
 
 The API documentation also includes reference to min and max hits
 however it appears that this info is not included in the API data at
@@ -443,7 +478,24 @@ Valid search fields are:
 
     sub search {
         my $self = shift;
-        my $opts = shift || ($self->error('No opts supplied') and return);
+        my %opts;
+        
+        if (@_ > 1 and not @_ % 2) {
+            %opts = @_;
+        }
+        elsif ( @_ == 1 ) {
+            if (ref $_[0] eq 'HASH') {
+                %opts = %{ $_[0] };
+            }
+            else {
+                %opts = ( 'search_term' => $_[0] );
+            }
+        }
+        else {
+            $self->error('Must supply at least a search term for search()');
+            return;
+        }
+
         my $uri;
         my %uri_options;
         my $result;
@@ -567,40 +619,33 @@ Valid search fields are:
                 },
         );
 
-        if (ref $opts eq 'HASH') {
-            # Construct the api URI using all the options supplied
-            
-            # Make sure that at least a search term was supplied
-            unless ($opts->{'search_term'}) { 
-                $self->error("No search term supplied");
+        # Construct the api URI using all the options supplied
+        # Make sure that at least a search term was supplied
+        unless ($opts{'search_term'}) { 
+            $self->error("No search term supplied");
+            return;
+        }
+        
+        for my $opt ( keys %opts ) {
+            # Test that the option is a valid option
+            unless ($options{$opt}) {
+                $self->error("Invalid search option $opt supplied");
                 return;
             }
             
-            for my $opt ( keys %{$opts} ) {
-                # Test that the option is a valid option
-                unless ($options{$opt}) {
-                    $self->error("Invalid search option $opt supplied");
-                    return;
-                }
-                
-                # Test that the value for this option is valid
-                unless ( $options{$opt}->{'valid'}->($opts->{$opt}) ){
-                    $self->error("Invalid value for option $opt supplied");
-                    return;
-                }
-                
-                # Some option values are accepted in a more readable form
-                # get the actual value the api expects.
-                if ( $friendly_values{$opt} ) {
-                    $opts->{$opt} = $friendly_values{$opt}->{$opts->{$opt}};
-                }
-
-                $uri_options{ $options{$opt}->{'key'} } = $opts->{$opt};                                
+            # Test that the value for this option is valid
+            unless ( $options{$opt}->{'valid'}->($opts{$opt}) ){
+                $self->error("Invalid value for option $opt supplied");
+                return;
             }
-        }
-        else {
-            # If just a scalar, use it as the search term.
-            $uri_options{ 'search' } = $opts;
+            
+            # Some option values are accepted in a more readable form
+            # get the actual value the api expects.
+            if ( $friendly_values{$opt} ) {
+                $opts{$opt} = $friendly_values{$opt}->{$opts{$opt}};
+            }
+
+            $uri_options{ $options{$opt}->{'key'} } = $opts{$opt};
         }
 
         $uri    = $self->_create_uri('search.php', \%uri_options);
