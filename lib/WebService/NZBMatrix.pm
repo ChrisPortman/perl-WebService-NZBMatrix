@@ -1,4 +1,5 @@
 #!/usr/bin/false
+# ABSTRACT: Provides an object oriented interface to the NZBMatrix APIs.
 
 =head1 NAME
 
@@ -6,7 +7,7 @@ WebService::NZBMatrix
 
 =head1 VERSION
 
-Version 0.1
+Version 0.001
     
 =head1 SYNOPSIS
 
@@ -39,7 +40,7 @@ Object oriented interface to the NZBMatrix APIs
 =cut
 package WebService::NZBMatrix;
 
-    our $VERSION = '0.1';
+    our $VERSION = '0.001';
     
     use strict;
     use LWP::UserAgent;
