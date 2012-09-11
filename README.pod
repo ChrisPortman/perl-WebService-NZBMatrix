@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-API::NZBMatrix
+WebService::NZBMatrix
 
 =head1 VERSION
 
@@ -9,7 +9,7 @@ Version 0.1
     
 =head1 SYNOPSIS
 
-    use API::NZBMatrix;
+    use WebService::NZBMatrix;
 
     my $api = API::NZBMatrix->new(
         {
@@ -37,7 +37,7 @@ Object oriented interface to the NZBMatrix APIs
 
 =head2 new
     
-    $api = API::NZBMatrix->new( 
+    $api = WebService::NZBMatrix->new( 
         { 
             'username' => 'nzbmatrix_user',
             'apikey'   => 'nzbmatrix_apikey',
@@ -67,7 +67,7 @@ The returned hash looks like:
 
     {
           'API_DAILY_DOWNLOAD' => '0', #Downloads via API for the day 
-          'USERID' => '606735',        #Account ID
+          'USERID' => '12345',         #Account ID
           'API_DAILY_RATE' => '28',    #API calls for the hour
           'USERNAME' => 'username'     #Username on the site.
     }
@@ -79,15 +79,21 @@ accepts either a single scalar value which will be the ID of an NZB
 or a hash ref containing the options applicable to this API function.
 In the case of a hash ref, the nzb_id is mandatory, the rest is
 optional.
-
+    
+    # As a single scalar
     $success = $api->bookmark('12345');
     
+    # As a list of attributes
     $success = $api->bookmark(
-        {
             nzb_id => '12345',
             action => ('add'|'remove'), #defaults to 'add'
-        }
     );
+    
+    # Options supplied in a hash ref.
+    %opts_hash = ( 'nzb_id' => '1234', 
+                   'action' => ('add'|'remove'), 
+                 );
+    $success = $api->bookmark( \%opts_hash );
 
 Returns true (1) if successful, undef if there is an error.
 
@@ -134,14 +140,20 @@ supplied the NZB contents are returned as a scalar string.
 
 If 'file' is supplied, the return values is 1/true.
 
+    # NZB ID supplied as a scalar
     $nzb = $api->download('12345');
     
+    # Options supplied as a list of arguments.
     $success = $api->download(
-        {
             'nzb_id' => '12345',
             'file'   => '/path/to/file.nzb',
-        }
     );
+    
+    # Options supplied in a hash ref.
+    %opts_hash = ( 'nzb_id'   => '12345', 
+                   'file' => '/some/file.nzb', 
+                 );
+    $success = $api->download( \%opts_hash );
 
 Note that if the file already exists, an error will be set and undef
 returned.
@@ -157,10 +169,11 @@ by the API or a single hash ref allowing the full compliment of
 options to be set in which case 'search_term' is mandatory, the rest
 are optional.
 
+    # Scalar supplied search term
     $search_results = $api->search('A search term');
     
+    # Options supplied as a list of elements
     $search_results = $api->search( 
-        {   
             'search_term'  => 'A search term',
             'category'     => 'NZBMatrix search category'
             'max_results'  => 10, # number
@@ -171,8 +184,14 @@ are optional.
             'max_size'     => 10, # number of MB
             'english_only' => (1|0),
             'search_field' => ('name'|'subject'|'weblink'),
-        }
     );
+    
+    # Options supplied in a hash ref.
+    %opts_hash = ( 'search_term' => 'something', 
+                   'category'    => 'Everything,
+                   ... 
+                 );
+    $search_results = $api->search( \%opts_hash );
 
 The API documentation also includes reference to min and max hits
 however it appears that this info is not included in the API data at
