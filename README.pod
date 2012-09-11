@@ -5,17 +5,15 @@ WebService::NZBMatrix
 
 =head1 VERSION
 
-Version 0.1
+Version 0.002
     
 =head1 SYNOPSIS
 
     use WebService::NZBMatrix;
 
     my $api = API::NZBMatrix->new(
-        {
-            'username' => 'myuser',
-            'apikey'   => 'myapikey',
-        }
+        'username' => 'myuser',
+        'apikey'   => 'myapikey',
     );
 
     my @search_results = $api->search('search term');
@@ -32,24 +30,43 @@ Version 0.1
 =head1 DESCRIPTION
 
 Object oriented interface to the NZBMatrix APIs
+
+=head1 ERROR HANDLING
+
+With the exception of the constructor ( new() ), which will die if
+arguments are invalid, all other methods will, if there are any issues,
+set an error that is retrievable via the error() method and return undef.
+
+For example of how to best manage error detection please see the doc for
+the error() method below.
    
 =head1 METHODS
 
 =head2 new
     
+    # Arguments as a list of arguments
     $api = WebService::NZBMatrix->new( 
-        { 
-            'username' => 'nzbmatrix_user',
-            'apikey'   => 'nzbmatrix_apikey',
-            'ssl'      => 1, #OPTIONAL
-        }
+        'username' => 'nzbmatrix_user',
+        'apikey'   => 'nzbmatrix_apikey',
+        'ssl'      => 1, #OPTIONAL
     );
 
-Accepts one argument which must be a hash reference containing the 
-keys 'username' being the username for your NZBmarix login for your
-account, and 'apikey' being the api key corresponding to that account.
-The hash ref can also contain the key 'ssl' with any true value to
-enable the use of ssl/https when communicating with the APIs.
+    # Arguments as a hash ref    
+    %opts_hash = (
+        'username' => 'nzbmatrix_user',
+        'apikey'   => 'nzbmatrix_apikey',
+        'ssl'      => 1, #OPTIONAL
+    );
+    $api = WebService::NZBMatrix->new( 
+        \%opts_hash    
+    );
+    
+Accepts one argument which may be a hash reference or list of arguments 
+arranged 'key', 'value' containing the keys 'username' being the
+username for your NZBmarix login for your account, and 'apikey' being
+the api key corresponding to that account. The hash ref can also contain
+the key 'ssl' with any true value to enable the use of ssl/https when
+communicating with the APIs.
 
 Returns an object setup with your NZBMatric authentication details.
     
