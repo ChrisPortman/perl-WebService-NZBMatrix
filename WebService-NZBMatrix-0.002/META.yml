@@ -12,4 +12,7 @@ meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4
 name: WebService-NZBMatrix
-version: 0.001
+requires:
+  LWP::UserAgent: 0
+  strict: 0
+version: 0.002

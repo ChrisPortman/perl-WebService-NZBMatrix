@@ -19,8 +19,11 @@ my %WriteMakefileArgs = (
   "EXE_FILES" => [],
   "LICENSE" => "perl",
   "NAME" => "WebService::NZBMatrix",
-  "PREREQ_PM" => {},
-  "VERSION" => "0.001",
+  "PREREQ_PM" => {
+    "LWP::UserAgent" => 0,
+    "strict" => 0
+  },
+  "VERSION" => "0.002",
   "test" => {
     "TESTS" => ""
   }

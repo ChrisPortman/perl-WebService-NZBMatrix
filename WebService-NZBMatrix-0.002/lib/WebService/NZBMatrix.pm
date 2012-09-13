@@ -7,17 +7,15 @@ WebService::NZBMatrix
 
 =head1 VERSION
 
-Version 0.001
+Version 0.002
     
 =head1 SYNOPSIS
 
     use WebService::NZBMatrix;
 
     my $api = API::NZBMatrix->new(
-        {
-            'username' => 'myuser',
-            'apikey'   => 'myapikey',
-        }
+        'username' => 'myuser',
+        'apikey'   => 'myapikey',
     );
 
     my @search_results = $api->search('search term');
@@ -34,13 +32,22 @@ Version 0.001
 =head1 DESCRIPTION
 
 Object oriented interface to the NZBMatrix APIs
+
+=head1 ERROR HANDLING
+
+With the exception of the constructor ( new() ), which will die if
+arguments are invalid, all other methods will, if there are any issues,
+set an error that is retrievable via the error() method and return undef.
+
+For example of how to best manage error detection please see the doc for
+the error() method below.
    
 =head1 METHODS
 
 =cut
 package WebService::NZBMatrix;
 
-    our $VERSION = '0.001';
+    our $VERSION = '0.002';
     
     use strict;
     use LWP::UserAgent;
@@ -54,36 +61,63 @@ package WebService::NZBMatrix;
 
 =head2 new
     
+    # Arguments as a list of arguments
     $api = WebService::NZBMatrix->new( 
-        { 
-            'username' => 'nzbmatrix_user',
-            'apikey'   => 'nzbmatrix_apikey',
-            'ssl'      => 1, #OPTIONAL
-        }
+        'username' => 'nzbmatrix_user',
+        'apikey'   => 'nzbmatrix_apikey',
+        'ssl'      => 1, #OPTIONAL
     );
 
-Accepts one argument which must be a hash reference containing the 
-keys 'username' being the username for your NZBmarix login for your
-account, and 'apikey' being the api key corresponding to that account.
-The hash ref can also contain the key 'ssl' with any true value to
-enable the use of ssl/https when communicating with the APIs.
+    # Arguments as a hash ref    
+    %opts_hash = (
+        'username' => 'nzbmatrix_user',
+        'apikey'   => 'nzbmatrix_apikey',
+        'ssl'      => 1, #OPTIONAL
+    );
+    $api = WebService::NZBMatrix->new( 
+        \%opts_hash    
+    );
+    
+Accepts one argument which may be a hash reference or list of arguments 
+arranged 'key', 'value' containing the keys 'username' being the
+username for your NZBmarix login for your account, and 'apikey' being
+the api key corresponding to that account. The hash ref can also contain
+the key 'ssl' with any true value to enable the use of ssl/https when
+communicating with the APIs.
 
 Returns an object setup with your NZBMatric authentication details.
     
 =cut
     sub new {
         my $class = ref $_[0] ? ref shift : shift;
-        my $opts  = shift;
+        my %opts;
         
-        # $opts must be a hash ref.
-        unless (ref $opts and ref $opts eq 'HASH') {
-            die "API::NZBMatrix->new() expects a hash ref.\n";
+        if (@_ > 1){
+            unless (@_ % 2) {
+                %opts = @_;
+            }
+            else {
+                die "Odd number of arguments supplied to new\n";
+                return;
+            }
+        }
+        elsif ( @_ == 1 ) {
+            if (ref $_[0] eq 'HASH') {
+                %opts = %{ $_[0] };
+            }
+            else {
+                %opts = ( 'nzb_id' => $_[0], 'action' => 'add' );
+            }
+        }
+        else {
+            die "Must supply at least a username and apikey to new\n";
+            return;
         }
         
-        # %{$opts} must contain 'username' and 'apikey'. 'ssl' is optional
-        my $username = $opts->{'username'} || die "Hash ref must include a 'username' key\n";
-        my $apikey   = $opts->{'apikey'}   || die "Hash ref must include an 'apikey' key\n";
-        my $ssl      = $opts->{'ssl'};
+        # %opts must contain 'username' and 'apikey'. 'ssl' is optional
+        my $username = $opts{'username'} || die "Hash ref must include a 'username' key\n";
+        my $apikey   = $opts{'apikey'}   || die "Hash ref must include an 'apikey' key\n";
+        my $ssl      = $opts{'ssl'};
         
         my %self = (
             'username' => $username,
@@ -159,8 +193,14 @@ Returns true (1) if successful, undef if there is an error.
         my $self = shift;
         my %opts;
         
-        if (@_ > 1 and not @_ % 2) {
-            %opts = @_;
+        if (@_ > 1){
+            unless (@_ % 2) {
+                %opts = @_;
+            }
+            else {
+                $self->error('Odd number of arguments supplied to bookmark');
+                return;
+            }
         }
         elsif ( @_ == 1 ) {
             if (ref $_[0] eq 'HASH') {
@@ -185,12 +225,12 @@ Returns true (1) if successful, undef if there is an error.
         );
         
         my %options = (
-            'nzb_id'  => 
+            'nzb_id' => 
                 { 
                     'key'   => 'id',
                     'valid' => sub { return $_[0] =~ /^\d+$/ ? 1 : undef },
                 },
-            'action'     => 
+            'action' => 
                 {
                     'key'   => 'action',
                     'valid' => sub { return $actions{$_[0]} ? 1 : undef },
@@ -318,8 +358,14 @@ set and undef returned.
         my $self = shift;
         my %opts;
         
-        if (@_ > 1 and not @_ % 2) {
-            %opts = @_;
+        if (@_ > 1){
+            unless (@_ % 2) {
+                %opts = @_;
+            }
+            else {
+                $self->error('Odd number of arguments supplied to download');
+                return;
+            }
         }
         elsif ( @_ == 1 ) {
             if (ref $_[0] eq 'HASH') {
@@ -481,8 +527,14 @@ Valid search fields are:
         my $self = shift;
         my %opts;
         
-        if (@_ > 1 and not @_ % 2) {
-            %opts = @_;
+        if (@_ > 1){
+            unless (@_ % 2) {
+                %opts = @_;
+            }
+            else {
+                $self->error('Odd number of arguments supplied to search');
+                return;
+            }
         }
         elsif ( @_ == 1 ) {
             if (ref $_[0] eq 'HASH') {
